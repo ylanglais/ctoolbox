@@ -1,0 +1,3 @@
+cc parsets.c -g -o parsets rexp.o tstmr.o -I. str.o mem.o err.o
+cc countdown.c -o countdown -I. tstmr.o rexp.o str.o err.o mem.o
+cc chrono.c -o chrono -I. tstmr.o

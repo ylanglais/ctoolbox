@@ -1,0 +1,6 @@
+#!/bin/zsh
+echo "start at" `date` > task.$$ 
+echo "sleep $1" >> task.$$
+sleep $1
+echo "end   at" `date` >> task.$$ 
+

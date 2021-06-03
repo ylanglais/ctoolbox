@@ -1,0 +1,1 @@
+gcc -o test-pgsql -D_test_gdb_pgsql_ gdb_pgsql.c -I$(pg_config --includedir) -L$(pg_config --libdir) -I$HOME/include -L$HOME/lib -ltbx  $(pg_config --libs) -lpq

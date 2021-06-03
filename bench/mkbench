@@ -1,0 +1,3 @@
+gcc -g -c bench.c -o bench.o -I${HOME}/include 
+gcc -g cpu-bench.c bench.o -I. -I${HOME}/include -L${HOME}/lib -ltbx -o cpu-bench
+#gcc -g syb-bench.c bench.o -L${HOME}/lib -I${HOME}/include -ltbx -o syb-bench

@@ -1,0 +1,10 @@
+#
+#
+echo ${bold}compile dstcli...$norm
+cc  -g dstcli.c -I$HOME/include -I. -L$HOME/lib -o dstcli -D__HAS_FUNC__ -D_SUN_ -ltbx -lpthread
+echo ""
+echo ${bold}compile cmd.c $norm
+cc -g -c cmd.c -o cmd.o -I.  -D__HAS_FUNC__ -D_SUN_ -I$HOME/include -L$HOME/lib -ltbx -lpthread
+echo ""
+echo ${bold}compile dststrv...$norm
+cc  -g dstsrv.c -I. -I$HOME/include -L$HOME/lib cmd.o -o dstsrv -D__HAS_FUNC__ -D_SUN_ -ltbx -lpthread -lnsl 

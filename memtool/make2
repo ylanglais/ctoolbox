@@ -1,0 +1,3 @@
+gcc -g -o mprof.o -c mprof.c -DSOLARIS 
+gcc -o mprof.so -B dynamic -KPIC -G -ldl mprof.o
+# cc -g -o mprof.o -c mprof.c -DSOLARIS -D_SUN_ -DSUN -xarch=v9; cc -D_SUN_ -DSUN -xarch=v9 -o mprof.so -B dynamic -KPIC -G -ldl mprof.o

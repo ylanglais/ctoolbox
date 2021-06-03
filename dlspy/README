@@ -1,0 +1,9 @@
+Run time linker lbdl entry point spy
+To test: 
+make test
+
+or once make all:
+
+dltest 
+
+LD_PRELOAD=./dlspy.so dltest

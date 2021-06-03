@@ -1,0 +1,2 @@
+gcc -c -g msg.c -o msg.o -I$HOME/include
+gcc -c -g nq.c -o nq.o -I$HOME/include

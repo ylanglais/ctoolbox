@@ -1,0 +1,4 @@
+export CC=clang
+export CC=gcc
+${CC} t.c -o t -L$HOME/lib -ltbx -I$HOME/include  -ldl
+${CC} countdown.c -o countdown -L$HOME/lib -ltbx -I$HOME/include -fpie -rdynamic

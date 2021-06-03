@@ -1,0 +1,4 @@
+openssl aes-256-cbc -salt -in tuple.c -out tuple.c.enc
+openssl aes-256-cbc -salt -in tuples.c -out tuples.c.enc
+gcc -g cryp.c -o test-encryp futl.o err.o mem.o crc_32.o tstmr.o -lssl -lcrypto  -Wall
+test-encryp tuples.c tuples.c; test-decryp out.enc tuples.c

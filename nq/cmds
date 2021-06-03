@@ -1,0 +1,11 @@
+cd test
+# 
+hexdump -Cv .nq_data 
+hexdump -Cv .nq_entries 
+# Clean and launch nq server:
+rm 2017100025104* .nq_*; ../nqs -c nqs.conf
+# put and get cmds:
+../nqput -h 127.0.0.1 -p 55555 nqc.h
+../nqget -h 127.0.0.1 -p 55555 one
+
+

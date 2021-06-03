@@ -1,0 +1,3 @@
+gcc test-bf.c -o test-bf -g -lssl -I$HOME/include -ltbx -L$HOME/lib && { 
+	[ -L md5 ] || ln -s test-bf md5 
+}

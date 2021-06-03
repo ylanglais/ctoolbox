@@ -1,0 +1,1 @@
+gcc json.c -g -o json -I$HOME/include -L$HOME/lib -ltbx -D_test_json_ -fexec-charset=utf-8

@@ -1,0 +1,152 @@
+XCOMM Toolbox rules##########################################################
+XCOMM 
+XCOMM Silence is of gold
+XCOMM
+.SILENT:
+XCOMM
+XCOMM Set GNU/make shell to ksh
+XCOMM
+SHELL=/bin/ksh
+XCOMM
+XCOMM Set standard lib prefix/suffix
+XCOMM 
+PRE=lib
+XCOMM
+XCOMM
+XCOMM 
+SUBDS=
+LIBTC=
+EXETC=
+#define tbx_lib(li) ${TBXLIB}/lib/**/li/**/$(SHLIBEXT)
+#define tbx_exe(ex) ${TBXEXE}//**/ex/**//$(EXEEXT)
+XCOMM Default rule ==> compile all!!!
+default: all
+
+#define tbx_lib_prefix_change(pre) @@\
+PRE = pre
+
+#define tbx_ccflags_add(flags)    @@\
+CFLAGS  += flags @@\
+CCFLAGS += flags
+
+#define  tbx_sub(sub) @@\
+SUBDS   =sub       @@\
+SUBSDIRS=subdirs   @@\
+SUBCLEAN=subclean  @@\
+SUBMAKE =submake   @@\
+@@\
+submake: @@\
+	for s in sub ;\@@\
+	do \@@\
+		 [ ! -f $$s/Imakefile ] && { \@@\
+			echo "${bold}${red}No Imakefile found in $$s, aborting ${norm}"; \@@\
+			exit 1; \@@\
+		} ||  ( \@@\
+			cd $$s; \@@\
+			echo "${under}in `pwd`${nounder}"; \@@\
+			imake -T ${TBXHOME}/tbx.tmpl || exit 1; \@@\
+			make makefiles || exit 1; \@@\
+		); \@@\
+    done @@\
+@@\
+subdirs: @@\
+    for s in sub ;\@@\
+    do \@@\
+        [ ! -f $$s/Imakefile ] && { \@@\
+			echo "${bold}${red}No Imakefile found in $$s, aborting ${norm}"; \@@\
+			exit 1; \@@\
+		} ||  ( \@@\
+			cd $$s;  \@@\
+			echo "${under}in `pwd`${nounder}"; \@@\
+			[ ! -f Makefile ] && (imake -T ${TBXHOME}/tbx.tmpl || exit 1);  \@@\
+			make all || exit 1; \@@\
+		); \@@\
+    done @@\
+@@\
+subclean: @@\
+	for s in sub ;\@@\
+	do \@@\
+		[ -f $$s/Makefile ] && ( \@@\
+			cd $$s; \@@\
+			echo "${under}in `pwd`${nounder}"; \@@\
+			echo "    cleaning..."; \@@\
+			make clean; \@@\
+		); \@@\
+	done @@\
+
+#define tbx_lib(lib, csrc, ccsrc, ldflags) @@\
+LIBTC += tbx_lib(lib) @@\
+DEPENDTC  += depend_/**/lib @@\
+@@\
+CSRC_/**/lib    = csrc @@\
+CCSRC_/**/lib   = ccsrc @@\
+OBJECTS_/**/lib = $(CSRC_/**/lib:.c=.o) $(CCSRC_/**/lib:.cc=.o) @@\
+@@\
+.depend_/**/lib: @@\
+	echo "    Update dependencies for${blue} lib ${norm}" ; \@@\
+	${CCC} -xM $(GUIINC) $(CCFLAGS) ${CSRC_/**/lib} ${CCSRC_/**/lib} > .depend_/**/lib @@\
+@@\
+tbx_lib(lib): .depend_/**/lib ${OBJECTS_/**/lib} @@\
+	$(CCC) $(SHLIB_FLAGS) -o tbx_lib(lib) $(OBJECTS_/**/lib) ldflags && echo "${bold}${green}    built "tbx_lib(lib) "${norm}" || { echo "    ${bold}${red}build FAILED${norm}" ; exit 1; } @@\
+@@\
+include .depend_/**/lib@@\
+@@\
+
+#define tbx_exe(exe, csrc, ccsrc, ldflags) @@\
+LIBTC += tbx_exe(exe) @@\
+DEPENDTC  += depend_/**/exe @@\
+@@\
+CSRC_/**/exe    = csrc @@\
+CCSRC_/**/exe   = ccsrc @@\
+OBJECTS_/**/exe = $(CSRC_/**/exe:.c=.o) $(CCSRC_/**/exe:.cc=.o) @@\
+@@\
+.depend_/**/exe: @@\
+	echo "    Update dependencies for${blue} exe ${norm}" ; \@@\
+	${CCC} -xM $(GUIINC) $(CFLAGS) $(CCFLAGS) ${CSRC_/**/exe} ${CCSRC_/**/exe} > .depend_/**/exe @@\
+@@\
+tbx_exe(exe): .depend_/**/exe ${OBJECTS_/**/exe} @@\
+	$(CCC) $(EXEOPTS) -o tbx_exe(exe) $(OBJECTS_/**/exe) -L. $(CCREPLDFLAGS) $(CCREPLIBS) ldflags && echo "${bold}${green}    built "tbx_exe(exe)"${norm}" || { echo "    ${bold}${red}build FAILED${norm}" ; exit 1; } @@\
+@@\
+include .depend_/**/exe@@\
+@@\
+
+#define tbx_test_exe(name) @@\
+tbx_exe(name, ${test_/**/name/**/_c}, $test_/**/name/**/_cc,-D_test_/**/name/**/_)
+
+#define tbx_all @@\
+@@\
+clean: ${SUBCLEAN} @@\
+	[ -d ${TBXLIB}/SunWS_cache ] && rm -rf ${TBXLIB}/SunWS_cache \@@\
+	[ -d ${TBXEXE}/SunWS_cache ] && rm -rf ${TBXEXE}/SunWS_cache \@@\
+	[ "${NXPBLIBTC}" != "" ] && \@@\
+		for i in "${LIBTC}"; do \@@\
+			[ -f $$i ] && rm $$i; \@@\
+		done; \@@\
+	[ "${NXPBEXETC}" != "" ] && \@@\
+		for i in "${EXETC}"; do \@@\
+			[ -f $$i ] && rm $$i; \@@\
+		done; \@@\
+	(\rm -rf SunWS_cache .depend_* *.o 1>/dev/null 2>&1 || true) @@\
+@@\
+Makefile: Imakefile ${TBXHOME}/tbx.rules @@\
+	echo "    Makefile recreated ==> reruning make in ${PWD}" ; \@@\
+	imake -T ${TBXHOME}/tbx.tmpl; \@@\
+	\rm -rf .depend_* || true; make ${MAKEFLAGS} @@\
+@@\
+Makefiles: ${SUBMAKE} @@\
+@@\
+makefiles: ${SUBMAKE} @@\
+@@\
+all: Makefile ${SUBSDIRS} ${LIBTC} ${EXETC} @@\
+@@\
+.c.o: @@\
+    echo "    compile $<..." ;\@@\
+    $(CC)  $(TBXINC) $(CFLAGS) $< $(COBJFLAGS) || { echo "${bold}${red}FAILED${norm}"; exit 1; } @@\
+@@\
+.cc.o: @@\
+    echo "    compile $<..." ;\@@\
+    $(CCC) $(GUIINC) $(CCFLAGS) $< $(GUILIBFLAGS) || { echo "${bold}${red}FAILED${norm}"; exit 1; } @@\
+@@\
+force: clean Makefiles all @@\
+@@\
+

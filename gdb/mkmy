@@ -1,0 +1,1 @@
+gcc -g -o test-mysql -D_test_gdb_mysql_ gdb_mysql.c $(mysql_config --cflags) $(mysql_config --libs) -I$HOME/include -L$HOME/lib -ltbx

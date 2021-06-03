@@ -1,0 +1,1 @@
+gcc tstsjson.c -g -o tstsjson -I$HOME/include -L$HOME/lib -ltbx -lpcre2-posix 

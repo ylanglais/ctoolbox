@@ -1,0 +1,158 @@
+Toolkox README file
+
+
+tbx/		LA BOITE A OUTILS (voir contenu en dessous).
+bench/		tools for benchmarking (work in slow progress...)
+cli/		Command line interface tools (chrono countdown crc, grep fibonacc elf32 elf64, ...
+diff/		differ entre répertoire pour aider à la dédup manuelle.
+dlspy/		espion de chargement dynamique de bibliothèques.
+dstsrv/		distribution de commandes sur différents serveurs.
+geom/		matrices ordre 3 et 3 et appli transformations 2D et 3D.
+json/		lab pour decodage json
+libdl/		sources des exemples de l'article jouer avec la libdl compilé avec musl au lieu de libc, la chain fonctionne sous linux
+mem/		allocateurs pour aide au débug memoire. Valgrind est bcp plus pratique :^)
+memtool/	diffents allocateurs mem.
+oak/		un jour peut être... ou pas.
+nq/		    Network queue
+qdxml/		un parser XML Quick & Dirty !! mais pratique.
+README		This very file
+smpp/		SMPP partial implementation.
+
+tbk: 
+libtbx.so : boite à outil  (voir description des fichers plus bas)
+	argts.c 		Arrangements A(m,n) (calcul du ieme arrangement selement) 
+	atr.c			Arbres ascii (subset fixe, voir patr pour subset progammable)
+	atree.c			Arbres ascii (VO)
+	b64.c			Base 64 encode/decode
+	btree.c			Arbres binaires
+	byar.c			Lecture écriture de byte arrays (décodage protos réseau).
+	cli.c			Client side C/S implementation
+	cmbs.c 			Combinaisons C(m,n) (calcul de la ieme combinaison seulement)
+	coveragec.c		Compteurs de durée de temps d'execution (benchmark)
+	crc_32.c		Calcul de CRC
+	cryp.c			Encrypt/decryp w/ different algorythms, w/ or w/o salt 
+	csv.c			Decodage expérimental de fichiers csv (à restructurer)
+	dyna.c			dynamic arrays of fixed size (with allocator) 
+	err.c			Messages d'erreurs avec niveaux	 (error, warning, info debug, trace)
+	fmt.c			Quick & dirty formattages divers sans alloc memoire (pour débug memoire)
+	fsf.c			Decodate expérimental de fichiers de champs de largeurs fixes 
+	futl.c			File utils
+	getl.c		    Bufferd fd getline for unix IO (man 2 read), srv and cli components
+	graph.c			Structures de graphes
+	hash.c			Tables de hashage (pas de doublon d'index)
+	hds.c			Hierarchical data storage/indexing (ex. foo.bar[0].object.value)
+	index.c			Index (permet les doublons)
+	json.c			json parsing 2 tree (to plug in hds some days and in future simplified dom like struct)
+	list.c			Listes doublement chainées
+	log.c			Advanced loging to stdio, file syslog and/or journald with different log levels according to tags and environment variables (Warning : MAYBE NOT FULLY TESTED / DEBUGED)
+	map.c			Edition de fichier mappés en mémoire.
+	mem.c			Helper zmalloc (malloc + memset à 0)
+	option.c 		Lecture générique de fichiers d'options
+	pal.c			Persistant allocator using mapped files
+	patr.c			Programable ascii tree
+	pstore.c		persistant version of storage
+	queue.h			FIFO stacks bindings based on list
+	re.c			Expressions régulières (posix, pre, pre2)
+	re_pcre2.c		Expressions régulières ("driver" perl re 2)
+	re_pcre.c		Expressions régulières ("driver" perl re 2)
+	re_posix.c		Expressions régulières ("driver" posix)
+	rexp.c			Expressions regulières posix (ancien code)
+	shmem.c			shared memory manipulation
+	srv.c			Server side C/S implementation
+	ssl.c			Add ssl layer to cli/srv
+	stack.h			LIFO stacks bindings based on list
+	sthpo.c			Simple (basic) pool thread implementation
+	storage.c		Stockage non destructif de longueur fixe
+	stral.c			Allocateur de chaines de carractères (desallocation globale).
+	str.c			stings...
+	thpo.c			Pool threads (with stats).
+	tree.c			Arbres (manque des fonctions de parcours sans callback)
+	tstmr.c			timestamps and timers.
+	tuples.c		Génération de nuplets (calcul du iéme seulement)
+	zprs.c			simple encaps of zlib for data in memory.
+
+
+
+dlspy.so : Espionne les chargements de bibliothèques (ld.so).
+			nécessite d'ajouter LD_PRELOAD=libdlspy.so avant la commande (voir http://ilay.org/yann/articles/dlfcn.save/) 
+
+libnddals.so : "Débugger" memoire (en fait allocateur ne détruisant pas la mémoire avec ajouts de codes en début et fin de zone mémoire pour vérifier les débordements.Nécessite l'utilisation de LD_PRELOAD
+
+
+libnddal.so : presque la même chose.Nécessite l'utilisation de LD_PRELOAD
+
+
+mprof: "profiler" d'utilisation mémoire Nécessite l'utilisation de LD_PRELOAD
+
+
+mstats: statistiques utilisation memoire. Nécessite l'utilisation de LD_PRELOAD
+
+Description des fichiers:
+--- Utils:
+
+stack.h			stack trace en C
+err.h			Macros et code pour les logs d'erreurs
+debug.h			Macros pour le debug
+rexp.h			encapsulation pour simplifier la gestion des expressions régulières
+Rexp.h			bonding C++
+mem.h			macros pour l'allocation memoire
+str.h			chaines de caractères
+Str.h			et son binding C++
+option.h		gestion des fichiers d'options
+Option.h			et son binding C++
+tstmr.h		
+Timer.h			et son binding C++
+Timestamp.h			et son binding C++
+coverage.h		macro pour afficher des messages à différents endroits du code
+fmt.h			outils de formattage de données typées sans alloc mémoire (pour debuger memoire)
+fsf.h			lecture de fichiers de type taille fixe
+csv.h			lecture de fichiers de type CSV
+bench.h			launch commands and get statistics
+
+
+--- Stockage:
+storage.h
+Storage.h		et son binding C++
+dyna.h
+Dyna.h			et son binding C++
+
+--- memory allocator:
+pstore.h		version persistante de "storage"
+Pstore.h
+pal.h			persistant allocator 
+phash.h
+
+--- Memory mapped files I/O (faster I/Os for big to huge files)
+map.h		
+Map.h
+
+
+--- Indexation/tri:
+atree.h		arbres ASCII
+Atree.h
+atr.h		arbres ascii (variante)
+Atr.h
+btree.h		arbres binaires
+Btree.h
+tree.h		arbres
+Tree.h
+hash.h		tables de hashage (indexation unique)
+Hash.h
+index.h		index (indexation sans contrainte d'unicité)
+Index.h
+list.h		listes doublement chainées
+List.h		
+graph.h		graphes
+Graph.h
+
+--- Réseau: primitives réseau pour developpement client/serveur
+cli.h
+srv.h
+
+--- IPC:
+shmem.h 	allocation mémoire en segment de mémoire partagée (partages entre appli sur une même machine);
+
+--- Dispatcher de commandes batch
+mkdst   compile le dispatcher de commandes sur plusieurs machines en fonction de la durée connue des commandes (pour optimiser l'ordonnancement de batchs répétitifs) 
+cmd.h	base du dispatcher de commande 
+

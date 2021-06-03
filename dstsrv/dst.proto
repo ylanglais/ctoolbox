@@ -1,0 +1,24 @@
+
+
+1/ connexion:
+	c -> s : CONNECT IDENTITY
+
+1.1 reconnexion
+	c -> s : RECONNECT myidentity with status STATUSCODE
+
+
+2/ attente tache :
+	c <- s : RUN : ligne de commande complete
+	c <- s : DONE
+
+3/ emission rapport :
+	c -> s : Returned TASKSTATUSCODE after %ld seconds
+
+4/ ping:
+	c -> s : ping STATUSCODE 
+	c <- s : pong
+
+5/ disconnexion 
+	c -> s : DISTONNECT IDENTITY
+////
+

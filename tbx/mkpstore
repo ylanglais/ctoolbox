@@ -1,0 +1,1 @@
+cc -g -D_SUN_ -DSUN -DSOLARIS -v -w -KPIC -xmodel=medium -m64 pstore.c -o test-pstore  -I. -L. -D_test_pstore_ -ltbx 

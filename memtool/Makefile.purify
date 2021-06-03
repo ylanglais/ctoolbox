@@ -1,0 +1,187 @@
+SHELL=/bin/ksh
+CCFLAGS = -D__HAS_FUNC__ -D__DEBUG__ -g
+OS      = $(shell uname -s)
+
+ifeq (${OS},SunOS)
+	CC = /soft/purifyplus/releases/purify.sol.2003.06.00.ER.0061//purify cc -D_SUN_ -DSUN 
+	LDOPT = -B dynamic -KPIC -G
+ifdef COV
+	CC += -xprofile=tcov
+endif
+else
+	CC = gcc 
+	LDOPT = -fpic -shared
+ifdef COV
+	CC += -ftest-coverage
+endif
+ifeq (${OS},GNU/Linux)
+	CC += -DLINUX -D_GNU_SOURCE
+endif
+endif
+
+SRCS = atr.c atree.c btree.c tree.c err.c hash.c list.c mem.c storage.c option.c rexp.c str.c dyna.c map.c coverage.c shmem.c cli.c srv.c 
+OBJS = ${SRCS:.c=.o}
+
+mdbgSRCS = stack.c allocator.c
+mdbgOBJS = ${mdbgSRCS:.c=.o}
+
+#TARGETS = test-list test-atr test-atree cmp-atha test-btree test-mem-clean test-mem-dirty test-rexp test-str
+TARGETS = test-atr test-atree test-btree test-tree cmp-atha test-dyna test-list test-str test-rexp test-map test-shmem test-srv test-cli test-cli2 test-srv test-srv2 test-srv-cli 
+
+all: tbx dlspy mdbg
+
+conf:
+	@echo ">> configuration: <<"; \
+	echo "OS      = ${OS}"; \
+	echo "CC      = ${CC}"; \
+	echo "CCFLAGS = ${CCFLAGS}"; \
+	echo "LDOPT   = ${LDOPT}"; 
+
+test: $(TARGETS)
+
+testall: test 
+	@echo ">> Test all <<"; for i in ${TARGETS} ; do print -n "    $$i...	"; $$i 1>/dev/null 2>&1 && echo "ok" || echo "error"; done
+
+clean:
+	@echo ">> Clean all <<"; \
+	for i in *.o ${TARGETS} *.gcov *.tcov *.d libtbx.so dlspy.so mdbg.so; do [ -f $$i ] && { echo "    removing $$i"; rm $$i; }; done; \
+	for i in *.profile; do [ -d $$i ] && { echo "    removing $$i"; rm -rf $$i; }; done; true 
+
+covtest: clean
+ifeq ($(OS),SunOS) 
+	@COV=1 make test; for target in ${TARGETS}; do echo "*** coverage analysis of $$target ***"; $$target 1>/dev/null 2>&1; tcov -x $$target.profile `echo $$target |sed -e 's/test-//'`.c; done
+else
+	@COV=1 make test; for target in ${TARGETS}; do  echo "*** coverage analysis of $$target ***"; $$target 1>/dev/null 2>&1; gcov `echo $$target |sed -e 's/test-//'`.c; done
+endif
+
+%.o: %.c
+	@echo compile $<; \
+	${CC} -c ${CCFLAGS} $<
+
+ATR_O   = hash.o storage.o mem.o
+test-atr: ${ATR_O} atr.c
+	@echo "*** Make test-atr ***" ; \
+	${CC} -c ${CCFLAGS} -o test-atr.o atr.c -D_test_atr_ ; \
+	${CC}    ${CCFLAGS} -o test-atr test-atr.o ${ATR_O}
+
+ATREE_O   = hash.o storage.o mem.o
+test-atree: ${ATREE_O} atree.c
+	@echo "*** Make test-atree ***" ; \
+	${CC} -c ${CCFLAGS} -o test-atree.o atree.c -D_test_atree_ ; \
+	${CC}    ${CCFLAGS} -o test-atree test-atree.o ${ATREE_O}
+
+BTREE_O   =  hash.o storage.o mem.o
+test-btree: ${BTREE_O} btree.c
+	@echo "*** Make test-btree ***" ; \
+	${CC} -c ${CCFLAGS} -o test-btree.o btree.c -D_test_btree_ ; \
+	${CC}    ${CCFLAGS} -o test-btree test-btree.o ${BTREE_O}
+
+TREE_O    = 
+test-tree: tree.c
+	@echo "*** Make test-tree ***" ; \
+	${CC} -c ${CCFLAGS} -o test-tree.o tree.c -D_test_tree_ ; \
+	${CC}    ${CCFLAGS} -o test-tree test-tree.o ${TREE_O}
+
+CMPATHA_O = atree.o atr.o storage.o mem.o btree.o hash.o coverage.o 
+cmp-atha: ${CMPATHA_O} cmp-atha.c
+	@echo "*** Make cmp-atha ***" ; \
+	${CC} -c ${CCFLAGS} -O -o cmp-atha.o cmp-atha.c ; \
+	${CC}    ${CCFLAGS} -O -o cmp-atha cmp-atha.o ${CMPATHA_O}
+
+LIST_O = mem.o storage.o
+test-list: ${LIST_O} list.c
+	@echo "*** Make test-list ***"; \
+	${CC} -c ${CCFLAGS} -o test-list.o list.c -D_test_list_; \
+	${CC}    ${CCFLAGS} -o test-list test-list.o ${LIST_O}
+
+MAP_O = 
+test-map: ${MAP_O} map.c 
+	@echo "*** Make test-map ***"; \
+	${CC} -c ${CCFLAGS} -o test-map.o map.c -D_test_map_; \
+	${CC}    ${CCFLAGS} -o test-map test-map.o ${MAP_O}
+
+MEM_O = 
+test-mem-clean: ${MEM_O} mem.c 
+	@echo "*** Make test-mem-clean ***"; \
+	${CC} -c ${CCFLAGS} -o test-mem-clean.o mem.c -D_test_mem_clean_; \
+	${CC}    ${CCFLAGS} -o test-mem-clean test-mem-clean.o ${MEM_O}
+
+test-mem-dirty: ${MEM_O} mem.c
+	@echo "*** Make test-mem-dirty ***"; \
+	${CC} -c ${CCFLAGS} -o test-mem-dirty.o mem.c -D_test_mem_dirty_; \
+	${CC}    ${CCFLAGS} -o test-mem-dirty test-mem-dirty.o ${MEM_O}
+
+REXP_O = str.o mem.o 
+test-rexp: ${REXP_O} rexp.c 
+	@echo "*** Make test-rexp ***"; \
+	${CC} -c ${CCFLAGS} -o test-rexp.o rexp.c -D_test_rexp_c_; \
+	${CC}    ${CCFLAGS} -o test-rexp test-rexp.o ${REXP_O}
+
+STR_O = mem.o
+test-str: ${STR_O} str.c
+	@echo "*** Make test-str ***"; \
+	${CC} -c ${CCFLAGS} -o test-str.o str.c -D_test_str_c_; \
+	${CC}    ${CCFLAGS} -o test-str test-str.o ${STR_O}
+
+DYNA_O = mem.o
+test-dyna: ${DYNA_O} dyna.c
+	@echo "*** Make test-dyna ***"; \
+	${CC} -c ${CCFLAGS} -o test-dyna.o dyna.c -D_test_dyna_c_; \
+	${CC}    ${CCFLAGS} -o test-dyna test-dyna.o ${DYNA_O}
+
+SHMEM_O = shmem.o 
+test-shmem: ${SHMEM_O} test-shmem.c 
+	@echo "*** Make test-shmem ***"; \
+	${CC} -c ${CCFLAGS} -o test-shmem.o test-shmem.c ; \
+	${CC}    ${CCFLAGS} -o test-shmem test-shmem.o ${SHMEM_O}
+
+CLI_O = cli.o
+test-cli: ${CLI_O} test-cli.c
+	@echo "*** Make test-cli ***"; \
+	${CC} -c ${CCFLAGS} -o test-cli.o test-cli.c; \
+	${CC}    ${CCFLAGS} -o test-cli test-cli.o ${CLI_O} -lsocket -lnsl
+
+SRV_O = srv.o
+test-srv: ${SRV_O} test-srv.c 
+	@echo "*** Make test-srv/test-cli ***"; \
+	${CC} -c ${CCFLAGS} -o test-srv.o test-srv.c ; \
+	${CC}    ${CCFLAGS} -o test-srv test-srv.o ${SRV_O} -lsocket -lnsl
+	
+CLI2_O = cli.o
+test-cli2: ${CLI2_O} test-cli2.c
+	@echo "*** Make test-cli2 ***"; \
+	${CC} -c ${CCFLAGS} -o test-cli2.o test-cli2.c ; \
+	${CC}    ${CCFLAGS} -o test-cli2 test-cli2.o ${CLI2_O} -lsocket -lnsl 
+
+SRV2_O = srv.o
+test-srv2: ${SRV2_O} test-srv2.c
+	@echo "*** Make test-srv2 ***"; \
+	${CC} -c ${CCFLAGS} -o test-srv2.o test-srv2.c ; \
+	${CC}    ${CCFLAGS} -o test-srv2 test-srv2.o ${SRV2_O} -lsocket -lnsl; \
+
+SRV_CLI_O = srv.o cli.o
+test-srv-cli:  ${SRV_CLI_O} test-srv-cli.c 
+	@echo "*** Make test-srv-cli ***"; \
+	${CC} -c ${CCFLAGS} -o test-srv-cli.o test-srv-cli.c; \
+	${CC}    ${CCFLAGS} -o test-srv-cli test-srv-cli.o ${SRV_CLI_O} -lsocket -lnsl 
+
+tbx: ${OBJS}
+	@echo "*** Make tbx library libtbx.so ***"; \
+	${CC}    ${CCFLAGS} ${LDOPT} -o libtbx.so ${OBJS}
+
+dlspy: dlspy.c
+	@echo "*** Make dlspy library (dlspy.so) ***"; \
+	${CC}    ${CCFLAGS} ${LDOPT} -o dlspy.so dlspy.c
+
+mdbg: ${mdbgOBJS}
+	@echo "*** Make mdbg library (mdbg.so) ***"; \
+	${CC}    ${CCFLAGS} ${LDOPT} -o mdbg.so ${mdbgOBJS}
+	
+
+install: all
+	install *.h ${HOME}/include;  \
+	install libtbx.so ${HOME}/lib \
+	install dlspy.so  ${HOME}/lib \
+	install mdbg.so   ${HOME}/lib 
+
+

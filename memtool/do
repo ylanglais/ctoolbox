@@ -1,0 +1,6 @@
+rm /home/ylanglais/lib/nddal.so
+make install 
+(mv /home/ylanglais/lib/nddal.so /home/ylanglais/lib/_nddal.so
+	\cd /home/ylanglais/lib/
+	ln -s sddal.so nddal.so 
+) 1>/dev/null

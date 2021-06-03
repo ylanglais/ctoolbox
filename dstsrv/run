@@ -1,0 +1,6 @@
+mkdst
+dstsrv -c dstsrv.conf -s dstsrv.spec -n dstsrv.new.spec -e dstsrv.err -r dstsrv.report -m 2>&1 | tee dstsrv.log
+dstcli -c dstcli.conf 
+dbx dstsrv
+run  -c dstsrv.conf -s dstsrv.spec -m
+

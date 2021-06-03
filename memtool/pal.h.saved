@@ -1,0 +1,8 @@
+#ifndef _pal_h_
+#define _pal_h_
+
+void *pal_new(char *filename, size_t size);
+void *pal_destroy(void *p); 
+int   pal_reset_usage(char *filename);
+
+#endif
