@@ -19,14 +19,14 @@ clean:
 	@$(call compile,$<)
 	
 libsndt${lib}: ${SNDT_OBJS}
-	@echo -n ">>> Make sndt library $@...";  \
-	${CC}    ${CCFLAGS} ${LDOPT} -o $@ ${SNDT_OBJS} ${LIBOPT} ;\
+	@echo -n ">>> Make sndt library $@...";\
+	${CC}    ${CCFLAGS} ${LDOPT} -o $@ ${SNDT_OBJS} ${LIBOPT} -lsndfile -lm ;\
 	$(call status)
 
-test-ampl: ampl.c wav.o
+test-ampl: ampl.c wav.o frq.o
 	@echo ">> make ${bold}${blue}"$@"${norm}"; \
 	${CC} -g -c ${CCFLAGS} ampl.c -o test-ampl.o -D_test_ampl_ ; \
-	${CC} -g -o $@ test-ampl.o ${LDOPT} wav.o ${EXEOPT}; \
+	${CC} -o $@ test-ampl.o wav.o ${EXEOPT} -L${HOME}/lib -ltbx -lsndfile -lm; \
 	$(call status) 
 
 install: all
