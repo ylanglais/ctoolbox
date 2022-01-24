@@ -689,6 +689,8 @@ int main(void) {
 	}	
 	n = storage_used(s);
 
+	fclose(f);
+
 	printf("getting from hash with %d slots :", ph->size); fflush(stdout);
 	tv = cov_time_zero();
 	for (j = 1; j < loops; j++) 
@@ -698,7 +700,7 @@ int main(void) {
 		tv = cov_time_add(tv, cov_time_sub(cov_time_get(), tmp));
 	}
 	printf("done in %s seconds\n", t =  cov_time_fmt(tv)); fflush(stdout);
-	
+	if (t) free(t);	
 	
 	hash_stats(ph); 
 
@@ -715,10 +717,13 @@ int main(void) {
 		tv = cov_time_add(tv, cov_time_sub(cov_time_get(), tmp));
 	}
 	printf("done in %s seconds\n", t =  cov_time_fmt(tv)); fflush(stdout);
+	if (t) free(t);	
 	hash_stats(ph); fflush(stdout);
 
 	hash_destroy(ph);
 	storage_destroy(s);
+
+	for (i = 0; i < n; i++) free(cols[i]);
 
 	return 0;
 }

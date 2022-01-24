@@ -260,6 +260,7 @@ int
 main(int na, char *a[]) {
 	int i, l, n;
 	pfsf_t f;
+	char *c;
 
 	err_init(NULL, err_INFO);
 	f = fsf_new("tests/fsf.testdataset.spec", "tests/fsf.testdataset.data");
@@ -272,10 +273,11 @@ main(int na, char *a[]) {
 	n = fsf_lines(f);
 
 	//printf("%d: %s\n", l, fsf_line_get(f, l));
-	printf("%d: LREFDO = \"%s\"\n", l, fsf_field_get_by_name(f, 1, "LREFDO"));
-
+	printf("%d: LREFDO = \"%s\"\n", l, c = fsf_field_get_by_name(f, 1, "LREFDO"));
+	if (c) free(c);
 	for (i = 0; i < n; i++) {
-		printf("l:%d,c:%d: %s\n", i, l, fsf_field_get(f, i, l));
+		printf("l:%d,c:%d: %s\n", i, l, c = fsf_field_get(f, i, l));
+		if (c) free(c);
 	}
 	fsf_destroy(f);
 

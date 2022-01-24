@@ -29,7 +29,7 @@ typedef struct {
 #undef  _byar_c_
 
 static int
-byar_buffer_resize(pbyar_t b, int len) {
+byar_buffer_resize(pbyar_t b, size_t len) {
 	if (!b)   return 1;
 	if (!len) return 2;
 	if (!b->buffer) {
@@ -43,6 +43,7 @@ byar_buffer_resize(pbyar_t b, int len) {
 		char *p;
 		if (!(p = realloc(b->buffer, b->size + len))) return 4;
 		b->buffer  = p;
+		b->pos     = p + b->size;
 		b->size   += len;
 	}
 	return 0;
@@ -64,6 +65,8 @@ pbyar_t
 byar_destroy(pbyar_t b) {
 	if (b) {
 		if (b->buffer) b->buffer = mem_free(b->buffer);
+		b->pos = NULL;
+		b->size = 0;
 		free(b);
 	}
 	return b;
@@ -94,7 +97,7 @@ byar_data_get(pbyar_t b, char **data, size_t *size) {
 }
 
 int
-byar_push(pbyar_t b, int len, char *data) {
+byar_push(pbyar_t b, size_t len, char *data) {
 	if (!b || !len || !data) return 1;
 	if (byar_buffer_resize(b, len)) return 2;
 	memcpy(b->pos, data, len);
@@ -103,7 +106,7 @@ byar_push(pbyar_t b, int len, char *data) {
 }
 
 char *
-byar_pop(pbyar_t b, int len, char *data) {
+byar_pop(pbyar_t b, size_t len, char *data) {
 	if (!b || !b->buffer) return NULL;
 
 	if (b->pos >= (b->buffer + b->size + len))  return NULL;
@@ -138,7 +141,9 @@ byar_dump(pbyar_t b) {
 		return;
 	} 
 	printf("buffer: %p\nsize: %lu\n", b->size);
-	printf("%s\n", fmt_bin(b->buffer, b->size));
+	char *p;
+	printf("%s\n", (p = fmt_bin(b->buffer, b->size)));
+	if (p) free(p);
 }
 
 int main(void) {

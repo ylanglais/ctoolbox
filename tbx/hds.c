@@ -149,14 +149,15 @@ hds_node_add(phds_t h, char *path, hds_type_t type, hds_any_t data) {
 }
 
 int hds_check(phds_t h, char *path) {
-	char *p, *q; 
+	char *p, *q, *f; 
 	phdsn_t hn;
 
 	hds_test_return_err(h);
 
-	for (q = p = strdup(path); *p; p++) {
+	for (f = q = p = strdup(path); *p; p++) {
 		if (!strchr(hds_NAME_SPEC, *p)) {
 			err_error("%c is not a suitable character for a data path", *p);
+			free(f);
 			return hdsERR_UNSUITABLE_CHAR;
 		} 
 		if (*p == '.') {
@@ -166,6 +167,7 @@ int hds_check(phds_t h, char *path) {
 				if (hn->type != hdsTYPE_OBJECT) {
 					err_error("%s is not an object", q);
 					*p = '.';
+					free(f);
 					return hdsERR_NOT_AN_OBJECT;
 				}
 			} else {
@@ -180,6 +182,7 @@ int hds_check(phds_t h, char *path) {
 				if (hn->type != hdsTYPE_ARRAY) {
 					err_error("%s is not an array", q);
 					*p = '[';
+					free(f);
 					return hdsERR_NOT_AN_ARRAY;
 				}
 			} else {
@@ -189,9 +192,11 @@ int hds_check(phds_t h, char *path) {
 			*p = '[';
 		} else if (*p == '(') {
 			err_error("methods are not implemented *yet*");
+			free(f);
 			return hdsERR_NOT_IMPLEMENTED;
  		}
 	}	
+	free(f);
 	return hdsOK;
 }
 
@@ -329,6 +334,8 @@ int main(void) {
 	hds_put(h, "base.str",       hdsTYPE_PTR,    any);
 
 	hds_dump(h);
+
+	hds_destroy(h);
 
 	return 0;
 }

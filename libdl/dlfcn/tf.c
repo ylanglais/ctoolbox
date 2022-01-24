@@ -14,4 +14,3 @@ main(void) {
 	_incr(a);
 	return 0;
 }
-

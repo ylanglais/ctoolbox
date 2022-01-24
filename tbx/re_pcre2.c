@@ -281,6 +281,7 @@ re_pcre2_match(pre_t r, char *p) {
 		if (n != PCRE2_ERROR_NOMATCH) {	
 			err_error("RE error: %s", _re_pcre2_match_err_str(n));
 		}
+		pcre2_match_data_free(md);
 		return NULL;
 	}
 

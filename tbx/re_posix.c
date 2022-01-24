@@ -59,8 +59,9 @@ re_posix_compile(pre_t r, int flags) {
 
 void *
 re_posix_free(pre_t r) {
-	if (r) {
+	if (r && r->r) {
 		regfree((regex_t *) r->r);
+		free(r->r);
 		r->r = NULL;
 	}
 	return NULL;	

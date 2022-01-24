@@ -209,6 +209,7 @@ main(void) {
 		}
 	} 
 	printf("line(0) = \"%s\"\n", l = csv_line(c, 0));
+	free(l);
 	printf("field(1, \"#champ\") = %s\n", csv_field_get_by_name(c, 1, "#champ"));
 	printf("field(2, \"offset\") = %s\n", csv_field_get_by_name(c, 2, "offset"));
 	 

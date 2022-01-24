@@ -385,12 +385,13 @@ thpo_stats_detail(pthpo_t tp) {
 
 	printf("Batch processing details:\n");
 	for (i = 0; i < ndata; i++) {
+		char B[60];
 		tstamp_t elapsed;
 		tdat    = (pthpo_data_t) storage_get(tp->data, i);
 		elapsed = tstamp_sub(tdat->end, tdat->start); 
 		total   = tstamp_add(total, elapsed);
 		printf("\tData batch %d (%p) processed by thread %d (%u) returned %d after %s\n",
-			tdat->dataid, tdat->data, tdat->tnum, tdat->thrid, tdat->ret, tstamp_duration_fmt(b, elapsed));
+			tdat->dataid, tdat->data, tdat->tnum, tdat->thrid, tdat->ret, tstamp_duration_fmt(B, elapsed));
 	}
 	printf("Total processing time: %s\n\n", tstamp_duration_fmt(b, total));
 }
@@ -443,6 +444,7 @@ int main(int n, char *a[]) {
 
 	thpo_done(tp);
 	thpo_stats_dump(tp);
+	thpo_stats_detail(tp);
 	thpo_destroy(tp);
 	
 	return 0;

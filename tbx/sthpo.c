@@ -114,6 +114,8 @@ int main(int n, char *a[]) {
 
 	end = tstamp_get();
 	printf("\n***\nslept %ds in %s unsing %d threads\n", total, tstamp_duration_fmt(b, tstamp_sub(end, sta)), nth);
+
+	list_destroy(l);
 	
 	return 0;
 }
