@@ -1,4 +1,4 @@
-DIRS = tbx db gdb geom xml dlspy mem smpp cli
+DIRS = tbx db gdb geom xml dlspy mem smpp cli sndt
 
 all:
 	@$(call sub,all)
