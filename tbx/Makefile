@@ -49,7 +49,7 @@ endif
 
 #
 # TBX sources:
-TBX_SRCS = argts.c atr.c atree.c patr.c b64.c btree.c byar.c cli.c cmbs.c coverage.c crc_32.c cryp.c csv.c dyna.c err.c fmt.c fsf.c getl.c graph.c hash.c hds.c index.c list.c log.c map.c mem.c option.c pal.c pipe.c pstore.c parr.c ${RE_C} rexp.c shmem.c srv.c ssl.c storage.c str.c stral.c sthpo.c thpo.c tree.c tstmr.c tuples.c udp.c zprs.c futl.c mlock.c
+TBX_SRCS = argts.c atr.c atree.c patr.c b64.c btree.c byar.c cli.c cmbs.c coverage.c crc_32.c cryp.c csv.c dyna.c err.c fmt.c fsf.c getl.c graph.c hash.c hds.c index.c fifo.c lifo.c list.c log.c map.c mem.c option.c pal.c pipe.c pstore.c parr.c ${RE_C} rexp.c shmem.c srv.c ssl.c storage.c str.c stral.c sthpo.c thpo.c tree.c tstmr.c tuples.c udp.c zprs.c futl.c mlock.c
 
 TBX_OBJS = ${TBX_SRCS:.c=.o}
 TBX_HDRS = ${TBX_SRCS:.c=.h}
@@ -57,7 +57,7 @@ TBX_HDRS = ${TBX_SRCS:.c=.h}
 TARGETS_TEST_RE	 = test-re-pcre test-re-pcre2 test-re-posix
 
 TARGETS_TEST     = test-argts test-atr test-atree test-patr test-btree test-cmbs test-csv test-fsf  \
-				   test-tree test-hash test-getl test-graph test-dyna test-list test-index test-str \
+				   test-tree test-hash test-getl test-graph test-dyna test-fifo test-lifo test-list test-index test-str \
 				   test-re test-rexp test-map test-pal test-pipe test-parr test-sthpo test-thpo test-mlock test-pstore test-tstmr  \
 				   test-shmem test-byar test-fmt test-crc_32 test-cryp test-tuples test-udp test-log \
 				   test-zprs test-b64 $(TARGETS_TEST_RE) test-hds
@@ -242,6 +242,19 @@ test-hash: hash.c ${HASH_O}
 GETL_O  = srv.o cli.o ssl.o err.o tstmr.o mem.o 
 test-getl: getl.c ${GETL_O}
 	@$(call build_test,${GETL_O},-D__HASH_STATISTICS__,$(THR_LDFLAGS) $(SSL_LDFLAGS))
+
+LIST_O = mem.o storage.o err.o tstmr.o
+test-list: list.c ${LIST_O} 
+	@$(call build_test,${LIST_O},,)
+
+FIFO_O = 
+test-fifo: fifo.c ${FIFO_O} 
+	@$(call build_test,${FIFO_O},,)
+
+LIFO_O = 
+test-lifo: lifo.c ${LIFO_O} 
+	@$(call build_test,${LIFO_O},,)
+
 
 LIST_O = mem.o storage.o err.o tstmr.o
 test-list: list.c ${LIST_O} 
