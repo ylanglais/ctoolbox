@@ -9,6 +9,7 @@
     23/04/2010  1.0 initial version
 	26/10/2017  1.1 add pstore_set
 	30/10/2017  1.2 bugfix
+	03/01/2023  1.3 bugfix (messy reentrance)
 */   
 
 #include <stdlib.h>
@@ -16,8 +17,8 @@
 #include <string.h>
 #ifdef __REENTRANT__
 #include <pthread.h>
-#define pstore_lock(x)   pthread_mutex_lock((x)->mp)
-#define pstore_unlock(x) pthread_mutex_unlock((x)->mp)
+#define pstore_lock(x)   {if (x && x->mp) pthread_mutex_lock((x)->mp);}
+#define pstore_unlock(x) {if (x && x->mp) pthread_mutex_unlock((x)->mp);}
 #else
 #define pstore_lock(x)
 #define pstore_unlock(x)
@@ -25,11 +26,12 @@
 #include "pal.h"
 #include "err.h"
 #include "fmt.h"
+#include "mem.h"
 
 char pstore_MODULE[]  = "Simple persistant storage management";
 char pstore_PURPOSE[] = "Simple persistant storage management";
-char pstore_VERSION[] = "1.2";
-char pstore_DATEVER[] = "30/10/2017";
+char pstore_VERSION[] = "1.3";
+char pstore_DATEVER[] = "03/01/2023";
 
 typedef struct {
 	void   *base;
@@ -49,7 +51,15 @@ typedef struct {
 #undef  _pstore_c_
 
 ppstore_t pstore_destroy(ppstore_t ps) {
-	if (ps) pfree(ps);
+	if (ps) {
+		#ifdef __REENTRANT__
+		if (ps->mp) {
+			pthread_mutex_destroy(ps->mp);
+			free(ps->mp);
+		}
+		#endif  
+		pfree(ps);
+	}
 	return NULL;
 }
 
@@ -87,6 +97,12 @@ ppstore_t pstore_new(char *filename, size_t unit, size_t grain) {
 	/* try load data first: */
 	if (!(ps = (ppstore_t) pmalloc(filename,  pstore_sizeof() + (unit * grain)))) 
 		return NULL;
+
+    #ifdef __REENTRANT__
+	if (!(ps->mp = (pthread_mutex_t *) mem_zmalloc(sizeof(pthread_mutex_t)))) {
+		return pstore_destroy(ps);
+	}
+	#endif
 
 	if (!ps->unit) {
 		ps->unit  = unit;
@@ -278,7 +294,7 @@ int main(void) {
 
 		printf("--> free pstore\n"); 
 
-		pfree(ps);
+		pstore_destroy(ps);
 	}
 	return 0;	
 }

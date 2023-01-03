@@ -320,7 +320,7 @@ PAL_O = err.o tstmr.o fmt.o
 test-pal: pal.c ${PAL_O}
 	@$(call build_test,${PAL_O},,)
 
-PSTORE_O = err.o pal.o tstmr.o fmt.o
+PSTORE_O = err.o pal.o tstmr.o fmt.o mem.o
 test-pstore: pstore.c ${PSTORE_O}
 	@$(call build_test,${PSTORE_O},,)
 
