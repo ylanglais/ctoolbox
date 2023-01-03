@@ -12,6 +12,7 @@
     Changelog:
     08/12/2017  0.8 	Initial version
 	15/12/2017	0.9		Initial debug (need locking)
+	03/01/2023	1.0		locking added
 */   
 
 #include <stdlib.h>
@@ -22,10 +23,10 @@
 #include "err.h"
 #include "futl.h"
 
-char parr_MODULE[]  = "Persystant DYNAmic allocator ";
+char parr_MODULE[]  = "Persistant DYNAmic allocator ";
 char parr_PURPOSE[] = "Allocate persistant arrays of standarized data";
-char parr_VERSION[] = "0.9";
-char parr_DATEVER[] = "15/12/2017";
+char parr_VERSION[] = "1.0";
+char parr_DATEVER[] = "03/01/2023";
 
 typedef char parr_filename_t[256];
 
@@ -128,73 +129,6 @@ _parr_slot_next(pparr_t arr, pslot_t slot) {
 	if (slot->page == -1) return NULL;
 	p = _parr_page_get(arr, slot->page);
 	return  _parr_page_slot(p, slot->offset);
-}
-
-static void
-_parr_page_dump(ppage_t p, dump_data_f dumpdata) {
-	if (!p) {
-		printf("    null page\n");
-		return;
-	}
-	printf("    page:  %x\n",  p);
-	printf("    pname: %s\n",  p->pname);
-	printf("    num:   %d\n",  p->num);
-	printf("    unit:  %lu\n", p->unit);
-	printf("    grain: %lu\n", p->grain);
-	printf("    used:  %d\n",  p->used);
-	printf("    prev:  %x\n",  p->prev);
-	printf("    next:  %x\n",  p->next);
-	printf("    data:  %x\n",  p->data);
-	printf("    slots:\n");
-	int i;
-	for (i = 0; i < p->grain; i++) {
-		printf("    --> % 2d: page %d, offset %d ", i, p->freeslots[i].page, p->freeslots[i].offset);
-		if (dumpdata) {
-			printf("   --> "); dumpdata(p->data + i * p->unit);
-	 	}
-		printf("\n");
-	}
-}
-
-static void 
-_parr_dump(pparr_t arr, dump_data_f dumpdata) {
-	pslot_t s;
-	int i = 0;
-	
-	printf("------------------------------------\n");
-	if (!arr) {
-		printf("  null persistant array\n");
-		return;
-	}
-	printf("  lock:     %s\n",  arr->lock ? "Locked" : "Unlocked");
-	printf("  path:     %s\n",  arr->path);
-	printf("  filespec: %s\n",  arr->filespec);
-	printf("  unit:     %lu\n", arr->unit);
-	printf("  grain:    %lu\n", arr->grain);
-	printf("  used:     %d\n",  arr->used);
-	printf("  npages:   %d\n",  arr->npages);
-	printf("  freeslot: \n");
-	for (s = &arr->freeslot; s && s->page != -1; s = _parr_slot_next(arr, s), i++) {
-		printf("  --> % 2d: page %d, offset %d\n", i, s->page, s->offset);
-	}
-	printf("  data:\n");
-	for (i = 0; i < arr->used; i++) {
-		s = arr->idx + i;
-		if (!s) printf("  --> % 2d: null slot\n");
-		else {
-			printf("  --> % 2d: page %d, offset %d", i, s->page, s->offset);
-			if (dumpdata) {
-				printf(" --> "); 
-				dumpdata(parr_get(arr, i));
-			}
-			printf("\n");
-		}
-	}
-	ppage_t p;
-	for (p = arr->pages; p ; p = p->next) {
-		_parr_page_dump(p, dumpdata);
-	}
-	printf("------------------------------------\n");
 }
 
 #if 0
@@ -452,6 +386,7 @@ parr_alloc(pparr_t arr) {
 		err_error("A big mess occured, blame the programmer");
 		return NULL;
 	}
+_parr_lock(arr);
 	pslot_t slot;
 	char *data = NULL;
 
@@ -474,6 +409,7 @@ parr_alloc(pparr_t arr) {
 	/* Mark slot as used: */
 	slot->page   = -1;
 	slot->offset = -1;	
+_parr_unlock(arr);
 
 	return data;
 }
@@ -485,7 +421,9 @@ parr_add(pparr_t arr, char *data) {
 	char *ldat = NULL;
 	if (!(ldat = parr_alloc(arr))) 
 		return NULL;
+_parr_lock(arr);
 	memcpy(ldat, data, arr->unit);	
+_parr_unlock(arr);
 	return ldat;
 }
 
@@ -497,12 +435,14 @@ parr_insert(pparr_t arr, int index, char *data) {
 	if (index > arr->used) return parr_add(arr, data);
 	if (!(d = parr_add(arr, data))) return d;
 
+_parr_lock(arr);
 	slot_t s;
 	s.page   = arr->idx[arr->used - 1].page;
 	s.offset = arr->idx[arr->used - 1].offset;
 
 	memmove((char *) (arr->idx + index + 1), (char *) (arr->idx + index), (arr->used - 1 - index) * sizeof(slot_t));
 	memcpy( (char *) (arr->idx + index),     (char *) &s                ,                           sizeof(slot_t));
+_parr_unlock(arr);
 	return d;
 }
 
@@ -515,6 +455,7 @@ parr_delete(pparr_t arr, int index) {
 		err_error("Index %d is out of bounds [0:%d]", index, arr->used - 1);
 		return 2;
 	}
+_parr_lock(arr);
 	s = arr->idx + index;
 	page = _parr_page_get(arr, s->page);
 
@@ -549,6 +490,7 @@ parr_delete(pparr_t arr, int index) {
 	if (page->used == 0) 
 	_parr_page_remove(arr, page->num);
 
+_parr_unlock(arr);
 	return 0;
 }
 
@@ -588,10 +530,12 @@ parr_set(pparr_t arr, int i, char *data) {
 	ppage_t p;
 	if (!arr) return NULL;
 	if (i < 0 || i > arr->used) return NULL;
+_parr_lock(arr);
 	s = arr->idx + i;
 	p = _parr_page_get(arr, s->page);
 
 	memcpy(p->data + s->offset * p->unit, data, p->unit);
+_parr_unlock(arr);
 	return p->data + s->offset;
 }
 
@@ -602,6 +546,74 @@ parr_count(pparr_t arr) {
 }
 
 #ifdef _test_parr_
+
+static void
+_parr_page_dump(ppage_t p, dump_data_f dumpdata) {
+	if (!p) {
+		printf("    null page\n");
+		return;
+	}
+	printf("    page:  %x\n",  p);
+	printf("    pname: %s\n",  p->pname);
+	printf("    num:   %d\n",  p->num);
+	printf("    unit:  %lu\n", p->unit);
+	printf("    grain: %lu\n", p->grain);
+	printf("    used:  %d\n",  p->used);
+	printf("    prev:  %x\n",  p->prev);
+	printf("    next:  %x\n",  p->next);
+	printf("    data:  %x\n",  p->data);
+	printf("    slots:\n");
+	int i;
+	for (i = 0; i < p->grain; i++) {
+		printf("    --> % 2d: page %d, offset %d ", i, p->freeslots[i].page, p->freeslots[i].offset);
+		if (dumpdata) {
+			printf("   --> "); dumpdata(p->data + i * p->unit);
+	 	}
+		printf("\n");
+	}
+}
+
+static void 
+_parr_dump(pparr_t arr, dump_data_f dumpdata) {
+	pslot_t s;
+	int i = 0;
+	
+	printf("------------------------------------\n");
+	if (!arr) {
+		printf("  null persistant array\n");
+		return;
+	}
+	printf("  lock:     %s\n",  arr->lock ? "Locked" : "Unlocked");
+	printf("  path:     %s\n",  arr->path);
+	printf("  filespec: %s\n",  arr->filespec);
+	printf("  unit:     %lu\n", arr->unit);
+	printf("  grain:    %lu\n", arr->grain);
+	printf("  used:     %d\n",  arr->used);
+	printf("  npages:   %d\n",  arr->npages);
+	printf("  freeslot: \n");
+	for (s = &arr->freeslot; s && s->page != -1; s = _parr_slot_next(arr, s), i++) {
+		printf("  --> % 2d: page %d, offset %d\n", i, s->page, s->offset);
+	}
+	printf("  data:\n");
+	for (i = 0; i < arr->used; i++) {
+		s = arr->idx + i;
+		if (!s) printf("  --> % 2d: null slot\n");
+		else {
+			printf("  --> % 2d: page %d, offset %d", i, s->page, s->offset);
+			if (dumpdata) {
+				printf(" --> "); 
+				dumpdata(parr_get(arr, i));
+			}
+			printf("\n");
+		}
+	}
+	ppage_t p;
+	for (p = arr->pages; p ; p = p->next) {
+		_parr_page_dump(p, dumpdata);
+	}
+	printf("------------------------------------\n");
+}
+
 
 void dump_int(char *data) {
 	int i;

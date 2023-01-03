@@ -20,12 +20,13 @@
     Changelog:
 	30/05/2016  1.1  add tbx std tags
 	04/08/2016  1.2  add changelog & tbx tags
+	03/01/2023  1.3  small fixes
 */   
 
 char opt_MODULE[]  = "Option file parser";
 char opt_PURPOSE[] = "simple multi format option file parser";
-char opt_VERSION[] = "1.2";
-char opt_DATEVER[] = "04/08/2016";
+char opt_VERSION[] = "1.3";
+char opt_DATEVER[] = "03/01/2023";
 
 typedef struct {
 	char *format;
@@ -67,10 +68,8 @@ opt_new(char *format){
 	if (!(opt = (popt_t) mem_zmalloc(sizeof(opt_t)))) return NULL;
 	if (!(opt->atree = atree_new())) return opt_destroy(opt);
 	if (!(opt->storage = storage_new(sizeof(optent_t), 50))) return opt_destroy(opt);
-	if (format) { 
-		opt->format = mem_strdup(format);	
-		if (!(opt->rexp = rexp_new(NULL, format, rexp_EXTENDED))) return opt_destroy(opt);
-	} else opt->format = NULL;
+	opt->format = mem_strdup(format);	
+	if (!(opt->rexp = rexp_new(NULL, format, rexp_EXTENDED))) return opt_destroy(opt);
 	return opt;
 }
 
@@ -125,7 +124,7 @@ opt_parse(popt_t opt, char *filename, void *data) {
 		ent = atree_retrieve(opt->atree, code);
 		if (ent) {
 			if      (ent->set)    ent->set(data, p);
-			else if (ent->format) sscanf(p, ent->format, ent->var);
+			else if (ent->format[0]) sscanf(p, ent->format, ent->var);
 			else if (ent->size)   strncpy(ent->var, p, ent->size);
 			else err_debug("code(%s) -> \"%s\"", code, p);
 		} else {
