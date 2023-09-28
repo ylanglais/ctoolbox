@@ -11,9 +11,11 @@ typedef struct {
 	int    samplerate;
 	int    samples;
 	int    channels;
+	SF_INFO sfinfo;
 	double max;
 	double *t;
 	double **a;
+	char   *fname;
 } wav_t, *pwav_t;
 
 #define _wav_c_
@@ -36,6 +38,7 @@ pwav_t wav_destroy(pwav_t s) {
 				if (s->a[i]) s->a[i] = mem_free(s->a[i]);
 			s->a = mem_free(s->a);
 		}
+		if (s->fname) free(s->fname);
 		free(s);
 	}
 	return NULL;
@@ -53,11 +56,13 @@ pwav_t wav_new(char *fname) {
 	
 	if (!(sf = sf_open(fname, SFM_READ, &sfinfo))) return NULL;
 
+/**
 	if (sfinfo.format != (SF_FORMAT_WAV | SF_FORMAT_PCM_16)) {
 		err_error("Cannot open file %s since not 16bits WAV", fname);
 		sf_close(sf);
 		return NULL;
 	}
+**/
 
 	if (!(p = (pwav_t) mem_malloc(sizeof(wav_t)))) {
 		err_warning("Cannot allocate memory for sound file data");
@@ -111,18 +116,62 @@ pwav_t wav_new(char *fname) {
 	mem_free(buf);
 	sf_close(sf) ;
 	
+
+	p->fname      = strdup(fname);
 	p->samples    = m;
 	p->channels   = sfinfo.channels;
 	p->frames     = sfinfo.frames; 
 	p->samplerate = sfinfo.samplerate;
+	p->sfinfo     = sfinfo;
 
-	err_log("channels   : %d", p->channels);
-	err_log("frames     : %d", p->frames);
-	err_log("samples    : %d", m);
-	err_log("samplerate : %d", p->samplerate);
-	err_log("duration   : %.2f s", (double) p->samples / (double) p->samplerate);
+	err_info("channels   : %d", p->channels);
+	err_info("frames     : %d", p->frames);
+	err_info("samples    : %d", m);
+	err_info("samplerate : %d", p->samplerate);
+	err_info("duration   : %.2f s", (double) p->samples / (double) p->samplerate);
 
 	return p;	
+}
+
+int wav_save(pwav_t w, char *fname) {
+	SF_INFO  sfinfo;
+	SNDFILE *snd;
+
+	if (!w)    return 1;
+	if (!w->a) return 2;
+
+	sfinfo = w->sfinfo;
+
+    if (!(snd = sf_open(fname, SFM_WRITE, &sfinfo))) {
+        err_error("cannot open sound file '%s': %s", fname, sf_strerror(snd));
+        return 1;
+    }
+
+	double *A = NULL;
+	if (!(A = (double *) malloc(w->samples * w->channels * sizeof(double)))) {
+        err_error("cannot allocate temporary sound buffer");
+        return 2;
+	}
+
+	for (int i = 0; i < w->samples; i++) {
+		for (int j = 0; j < w->channels; j++) {
+			A[i * w->channels + j] = w->a[j][i];
+		}	
+	}
+
+	if ((sf_writef_double(snd, A, w->samples)) != w->samples) {
+		err_error("problem writing frames on channel %d", 0);
+		sf_close(snd);
+		return 3;
+	}
+
+	free(A);
+
+    /* Terminate snd writing and close: */
+    sf_write_sync(snd);
+    sf_close(snd);
+
+	return 0;	
 }
 
 double wav_length(pwav_t s) {

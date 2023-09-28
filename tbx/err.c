@@ -12,6 +12,8 @@
     Changelog:
 	28/04/2016  1.3  fixes
 	04/08/2016  2.1  add separator in parameter & take text separator into account for counting fields.
+	28/09/2023  2.2  change level of initial message from message to info
+		
 */   
 
 char err_MODULE[]  = "Error messaging";
@@ -123,7 +125,7 @@ void err_init(char *filename, int level) {
     if (filename) err_FILE = fopen(filename, "a");
 	if (!err_FILE) err_FILE = stderr;
 	err_level_set(level);
-	err_message("%s version %s initialisation (level = %s)", err_MODULE, err_VERSION, err_TEXT[err_LEVEL]);
+	err_info("%s version %s initialisation (level = %s)", err_MODULE, err_VERSION, err_TEXT[err_LEVEL]);
 }
 
 int err_level_set(int level) {
