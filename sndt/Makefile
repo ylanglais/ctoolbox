@@ -31,9 +31,15 @@ test-ampl: ampl.c wav.o frq.o
 
 install: all
 	@echo ">>> Install in $(DEST):"; \
-    [ -d $(DEST)/include/tbx/sndt ] || mkdir -p $(DEST)/include/tbx/sndt ; \
-    echo "    Install header files in $(DEST)/include/tbx/sndt"; \
-    install *.h $(DEST)/include/tbx/sndt;  \
+    [ -d $(DEST)/include/sndt ] || mkdir -p $(DEST)/include/sndt ; \
+    echo "    Install header files in $(DEST)/include/sndt"; \
+    install *.h $(DEST)/include/sndt;  \
     echo "    Install libsndt${lib} in $(DEST)/lib"; \
     install libsndt${lib} $(DEST)/lib 
+
+norm : norm.c wav.o
+	@echo ">> make ${bold}${blue}"$@"${norm}"; \
+	${CC} -g -c ${CCFLAGS} norm.c -o norm.o ; \
+	${CC} -o $@ norm.o wav.o ${EXEOPT} -L${HOME}/lib -ltbx -lsndfile -lm; \
+	$(call status) 
 
