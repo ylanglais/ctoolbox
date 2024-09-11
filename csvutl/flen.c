@@ -78,7 +78,7 @@ typedef struct {
 static pmap_t
 __CsV_map_ro(char *fname) {
 	pmap_t m;
-	if (m = map_new(fname, mapRDONLY)) return m;
+	if ((m = map_new(fname, mapRDONLY))) return m;
 	return NULL;
 }
 
@@ -88,10 +88,10 @@ CsV_field_next(pCsV_t c) {
 } 
 **/
 
-int __CsV_dmp(pCsV_t c) {
+void __CsV_dmp(pCsV_t c) {
 	if (!c) {
 		err_error("null CsV");
-		return 1;
+		return;
 	}
 	printf("fname     : %s\n", c->fname);
 	printf("ro        : %d\n", c->ro);
@@ -116,14 +116,15 @@ int __CsV_dmp(pCsV_t c) {
 }
 
 char *basenamecsv(char *s) {
-	char *p, *q;
+	char *p;
 	p = strdup(s);
 	int l = strlen(s);
 	if (strcmp(p+l-5, ".csv")) return p;
 	s[l-5] = 0;
 	return p;	
 }
-int CsV_create_table(pCsV_t c) {
+void
+CsV_create_table(pCsV_t c) {
 	char *s = basenamecsv(c->fname);
 	printf("create table %s (\n", s);
 	free(s);
@@ -250,8 +251,6 @@ CsV_guess_sep(pCsV_t c) {
 
 	delsep_t ds = {0, 0};
 
-	int found = 0;
-
 	char *p = map_data_get(c->map);
 	char *m = map_size_get(c->map) + p;
 
@@ -286,9 +285,11 @@ CsV_guess_sep(pCsV_t c) {
 	return ds;
 }
 
-int CsV_index_destroy(pCsV_t c) {
-	if (!c) return 1;
+void *
+CsV_index_destroy(pCsV_t c) {
+	if (!c) return NULL;
 	if (c->index) c->index = mem_free(c->index);
+	return NULL;
 }
 
 int
@@ -320,11 +321,10 @@ CsV_namei(int i) {
 	return strdup(b);
 }
 	
-int
+void
 CsV_analyse(pCsV_t c) {
 	char *m, *p, *q;
 
-	int ncplm = 0;
 	int ncpl  = 0;
 	int ncpf  = 0;
 	int nl    = 0;
@@ -386,7 +386,7 @@ CsV_analyse(pCsV_t c) {
 				}
 				ss = stral_dup(c->stral, s);	
 				s = mem_free(s);
-				if (ul = (unsigned long) hash_retrieve(c->fields[nf].hash, ss)) {
+				if ((ul = (unsigned long) hash_retrieve(c->fields[nf].hash, ss))) {
 					ul = ul + 1;
 				} else {
 					hash_insert(c->fields[nf].hash, ss, (void *) 1);
@@ -445,7 +445,7 @@ int main(int n, char *a[]) {
 	for (i = optind; i < n; i++) {
 		pCsV_t c = NULL;
 		err_info("process file %a");
-		if (c = CsV_new(a[i], sep, del, con1stline)) {
+		if ((c = CsV_new(a[i], sep, del, con1stline))) {
 			delsep_t ds;
 			ds = CsV_guess_sep(c);
 			printf("guessed sep: '%c', guessed del: '%c'\n", ds.sep, ds.del);
