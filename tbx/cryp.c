@@ -41,11 +41,13 @@ static cryp_info_t cryp_infos[] = {
 	{cryp_aes_256_ofb, 256, (f_cipher_t) EVP_aes_256_ofb, "aes_256_ofb"},
 
 	{cryp_rc4,         128, (f_cipher_t) EVP_rc4,         "rc4"},
-	
+
+#ifdef EVP_idea_cbc
 	{cryp_idea_cbc,    128, (f_cipher_t) EVP_idea_cbc,    "idea_cbc"},
 	{cryp_idea_ecb,    128, (f_cipher_t) EVP_idea_ecb,    "idea_ecb"},
 	{cryp_idea_cbf,    128, (f_cipher_t) EVP_idea_cfb,    "idea_cfb"},
 	{cryp_idea_ofb,    128, (f_cipher_t) EVP_idea_ofb,    "idea_ofb"},
+#endif 
 
 	{cryp_rc2_cbc,       0, (f_cipher_t) EVP_rc2_cbc,     "rc2_cbc"},
 	{cryp_rc2_ecb,       0, (f_cipher_t) EVP_rc2_ecb,     "rc2_ecb"},

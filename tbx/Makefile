@@ -26,8 +26,8 @@ RE_C = re.c re_posix.c
 RE_CCFLAGS = 
 RE_LDFLAGS = 
 #
-HASPCRE1=$(shell [ -x /usr/sbin/pcre-config  ] && echo 1)
-HASPCRE2=$(shell [ -x /usr/sbin/pcre2-config ] && echo 1)
+HASPCRE1=$(shell [ -x /usr/bin/pcre-config  ] && echo 1)
+HASPCRE2=$(shell [ -x /usr/bin/pcre2-config ] && echo 1)
 #
 ifeq (${HASPCRE1},1)
 	PCRE_REGEX=1

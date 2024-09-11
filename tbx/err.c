@@ -1,4 +1,6 @@
+#include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 #ifndef _err_h_
 #include "err.h"
 #endif
@@ -16,18 +18,19 @@
 
 char err_MODULE[]  = "Error messaging";
 char err_PURPOSE[] = "Error and loging module";
-char err_VERSION[] = "2.1";
-char err_DATEVER[] = "04/08/2016";
+char err_VERSION[] = "2.3";
+char err_DATEVER[] = "11/09/2024";
 
 char *err_TEXT[] = {
-    "       ",
+    "",
 	"MESSAGE",
-	"LOG    ",
-	"ERROR  ",
+	"LOG",
+	"ERROR",
 	"WARNING",
-	"INFO   ",
-	"DEBUG  ",
-	"TRACE  ",
+	"INFO",
+	"DEBUG",
+	"TRACE",
+	"COVERAGE",
 };
 
 #define errBUFSIZE 1024
@@ -119,11 +122,22 @@ err_write(int level, char *file, int line, char *func, char *fmt, va_list args) 
 }
 #endif 
 
+int err_str_to_level(char *s) {
+	for (int i = err_NONE; i <= err_COVERAGE; i++) {
+		if (!strcmp(s, err_TEXT[i])) return i;
+	}
+	return -1;
+}
+	
 void err_init(char *filename, int level) {
     if (filename) err_FILE = fopen(filename, "a");
 	if (!err_FILE) err_FILE = stderr;
+
+	if (level == -1 && getenv("err_LEVEL")) level = err_str_to_level(getenv("err_LEVEL"));
+	if (level == -1) level = err_ERROR;
+
 	err_level_set(level);
-	err_message("%s version %s initialisation (level = %s)", err_MODULE, err_VERSION, err_TEXT[err_LEVEL]);
+	err_info("%s version %s initialisation (level = %s)", err_MODULE, err_VERSION, err_TEXT[err_LEVEL]);
 }
 
 int err_level_set(int level) {
