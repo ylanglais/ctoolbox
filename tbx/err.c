@@ -14,6 +14,8 @@
     Changelog:
 	28/04/2016  1.3  fixes
 	04/08/2016  2.1  add separator in parameter & take text separator into account for counting fields.
+	28/09/2023  2.2  change level of initial message from message to info
+		
 */   
 
 char err_MODULE[]  = "Error messaging";
