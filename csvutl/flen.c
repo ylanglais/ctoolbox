@@ -6,7 +6,7 @@
 #include <tbx/mem.h>
 #include <tbx/err.h>
 #include <tbx/map.h>
-#include <tbx/rexp.h>
+#include <tbx/re.h>
 #include <tbx/stral.h>
 #include <tbx/hash.h>
 
@@ -119,12 +119,16 @@ char *basenamecsv(char *s) {
 	char *p;
 	p = strdup(s);
 	int l = strlen(s);
-	if (strcmp(p+l-5, ".csv")) return p;
-	s[l-5] = 0;
+	if (strcmp(p+l-4, ".csv")) {
+		err_error(p+l - 4);
+		return p;
+	}
+	p[l-4] = 0;
 	return p;	
 }
 void
 CsV_create_table(pCsV_t c) {
+	if (!c) return;
 	char *s = basenamecsv(c->fname);
 	printf("create table %s (\n", s);
 	free(s);
@@ -132,7 +136,7 @@ CsV_create_table(pCsV_t c) {
 		switch (c->fields[i].type) {
 		case ft_bool:
 		case ft_int:
-			printf("\t%s float", c->fields[i].name);
+			printf("\t%s int", c->fields[i].name);
 			break;
 		case ft_float:
 			printf("\t%s float", c->fields[i].name);
@@ -153,6 +157,20 @@ CsV_create_table(pCsV_t c) {
 		printf("\n");
 	}
 	printf(");\n");
+}
+
+void CsV_sql_import(pCsV_t c) {
+	if (!c) return;
+	char *s = basenamecsv(c->fname);
+	printf("\\copy %s (",s); free(s);
+	for (int i = 0; i < c->nfields; i++) {
+		printf("%s", c->fields[i].name);
+		if (i < c->nfields - 1)
+			printf(", ");
+	} 
+	printf(") from '%s' csv delimiter '%c' quote '%c' encoding 'UTF-8'", c->fname, c->sep, c->del);
+	if (c->con1stline) printf(" HEADER");
+	printf(";\n");
 }
 
 size_t
@@ -221,22 +239,22 @@ CsV_guess_type(pCsV_t c, char *from, char *to) {
 	ft_type type = ft_err;
 	char *s = _CsV_scpy(from, to);
 	if (!s)                                           return ft_err;
-	p_rexp_t pre;
-	if (!(pre = rexp_new(s, "^(0|[+-]?[1-9][0-9]*)$", rexp_EXTENDED | rexp_NL_DO_NOT_MATCH))) 
+	pre_t pre;
+	if (!(pre = re_new(s, "^(0|[+-]?[1-9][0-9]*)$", reEXTENDED))) 
 		goto ret;
-	if (rexp_find(pre)) { 
+	if (re_find_first(pre)) { 
 		type = ft_int; 
 		goto ret; 
 	}
-	if (pre) pre = rexp_destroy(pre);
-	if (!(pre = rexp_new(s, "^[-+]?[0-9]*\\.?[0-9]+([eE][-+]?[0-9]+)?$", rexp_EXTENDED | rexp_NL_DO_NOT_MATCH))) 
+	if (pre) pre = re_destroy(pre);
+	if (!(pre = re_new(s, "^[-+]?[0-9]*\\.?[0-9]+([eE][-+]?[0-9]+)?$", reEXTENDED))) 
 		goto ret;
-	if (rexp_find(pre)) 
+	if (re_find_first(pre)) 
 		type = ft_float; 
 
 	type = ft_string;
 ret:
-	if (pre) pre = rexp_destroy(pre);
+	if (pre) pre = re_destroy(pre);
 	if (s)   s   = mem_free(s);
 	return type;
 }
@@ -454,6 +472,7 @@ int main(int n, char *a[]) {
 			printf("\n");
 
 			CsV_create_table(c);
+			CsV_sql_import(c);
 
 			c = CsV_destroy(c);
 		}
