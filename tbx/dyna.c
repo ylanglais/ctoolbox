@@ -236,7 +236,7 @@ dyna_add(pdyna_t da, char *pdata) {
 	if (!(p = dyna_alloc(da))) return NULL;
 
 	/* copy data to slot: */
-	memcpy((void *) p, (void *) pdata, da->unit);
+	if (pdata != NULL) memcpy((void *) p, (void *) pdata, da->unit);
 	
 	return p;
 }

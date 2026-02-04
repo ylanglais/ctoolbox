@@ -18,6 +18,7 @@ pwav_t   wav_new(char *fname);
 pwav_t   wav_destroy(pwav_t s);
 int      wav_save(pwav_t w, char *fname);
 int      wav_channels(pwav_t s);
+double 	 wav_max(pwav_t s);
 double   wav_length(pwav_t s);
 int      wav_samplerate(pwav_t s);
 int      wav_samples(pwav_t s);

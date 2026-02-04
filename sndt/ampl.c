@@ -501,6 +501,8 @@ ampl_gen(pampl_t a, amplOP op, double amplitude, double fromtime, double totime,
 		case ampl_opDIV:
 			a->amplitude[i] /= aa;
 			break;
+		case ampl_opBAD:
+			break;
 		}
 	}
 	return 0;

@@ -173,7 +173,10 @@ int wav_save(pwav_t w, char *fname) {
 
 	return 0;	
 }
-
+double wav_max(pwav_t s) {
+	if (!s) return 0;
+	return s->max;
+}
 double wav_length(pwav_t s) {
 	if (!s) return 0;
 	return (double) s->samples / (double) s->samplerate;

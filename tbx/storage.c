@@ -140,7 +140,7 @@ char *storage_add(pstorage_t ps, char *pdata) {
 	char *p;
 	if (!ps) return NULL;
 	if (!(p = storage_alloc(ps))) return NULL;
-	memcpy((void *) p, (void *) pdata, ps->unit);
+	if (pdata != NULL) memcpy((void *) p, (void *) pdata, ps->unit);
 	return p;
 }
 

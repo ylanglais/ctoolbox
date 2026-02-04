@@ -1,6 +1,6 @@
 include ../base.mk
 
-TARGETS = libsndt${lib} 
+TARGETS = libsndt${lib}
 
 
 all: ${TARGETS} 
