@@ -113,6 +113,12 @@ setopt  NUMERIC_GLOB_SORT PUSHD_IGNORE_DUPS PUSHD_TO_HOME REC_EXACT
 ##
 #
 export PATH=$PATH:/usr/games
+
+# .NET Files:
+#export DOTNET_ROOT=/usr/share/dotnet
+#export MSBuildSDKsPath=$DOTNET_ROOT/sdk/$(${DOTNET_ROOT}/dotnet --version)/Sdks
+#export PATH=${PATH}:${DOTNET_ROOT}
+#export PATH=$PATH:$HOME/.dotnet/tools
 #
 # write a file of the current xterm session:
 #
@@ -195,3 +201,10 @@ hosts
 #
 # Make cursor orangered:
 echo -n -e '\e]12;orangered\a'  
+
+[ -d ~/.localapps ] && {
+	for i in ~/.localapps/*
+	do 
+		. $i
+	done
+}

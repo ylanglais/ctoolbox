@@ -60,11 +60,14 @@ hosts() {
 	# Translate host db into aliases:
 	for i in $(cat  ~/.hlist) 
 	do
-		echo $i | egrep "^([^     ]){1,}:([^      ]*){1,}" 1>/dev/null 2>&1 && {
+		port=""
+		echo $i | egrep "^([^     ]){1,}:([^      ]*){1,}(:([0-9]{1-5})){0,1}" 1>/dev/null 2>&1 && {
 			k=$(echo $i|cut -d":" -f 1)
 			v=$(echo $i|cut -d":" -f 2)
 			h=$(echo $v|cut -d"@" -f 2)
-			eval "alias $k='xnames ssh $v; ssh $v;xnames \"$(hostname)-${Shell}-${SessionID} $(basename ${PWD})\"'"
+			p=$(echo $i|cut -d:   -f 3)
+			[ -z $p ] || port="-p $p"
+			eval "alias $k='xnames ssh $v; ssh $port $v;xnames \"$(hostname)-${Shell}-${SessionID} $(basename ${PWD})\"'"
 			eval "alias _$k='echo $v'"
 		}
 	done
@@ -286,9 +289,9 @@ dbdmpcmd() {
 	echo "Dump database $bold$green$dn$norm to $bold$yellow$name$norm"
 
 	[ $dt = "mysql" ] && {
-		mysqldump -h $dh -u $dl -p$dw -P $dp --lock-tables=false $dn $* > $name
+		echo mysqldump -h $dh -u $dl -p$dw -P $dp --lock-tables=false $dn $* > $name
 	} || {
-		PGPASSWORD=$(__get_dw) pgdump -h$dh $dn -U $dl $* > $name
+		echo PGPASSWORD=$(__get_dw) pgdump -h$dh $dn -U $dl $* > $name
 	}
 }
 dbschema() {

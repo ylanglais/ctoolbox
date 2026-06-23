@@ -11,9 +11,12 @@ se binary
 se noerrorbells
 se novisualbell
 se mousef
+set mouse=nv
 se belloff=all
 syntax on
 noau
 let g:loaded_tar  = 1
 let g:loaded_gzip = 1
 let g:loaded_zip  = 1                                               
+
+
