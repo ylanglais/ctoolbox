@@ -33,6 +33,7 @@ export SessionID
 setopt INC_APPEND_HISTORY
 setopt APPEND_HISTORY
 HISTFILE=$HOME/.histfiles/.$Shell.$HOST.$SessionID; export HISTFILE
+setopt appendhistory
 #
 #
 # Prevents waiting for display of C-Shell messages.
