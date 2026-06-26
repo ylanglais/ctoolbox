@@ -1,0 +1,2 @@
+sudo apt install libssl-dev systemd-dev libsystemd-dev zlib1g-dev postgresql-server-dev-all libselinux1-dev libzstd-dev liblz4-dev libxslt1-dev libpam0g-dev readline-common libgssapi-krb5-2 libpcre2-dev libelf-dev libsndfile1-dev libmariadb-dev-compat libmariadb-dev libmariadbd-dev postgresql-common-dev
+sudo ln -s /usr/lib/x86_64-linux-gnu/libgssapi_krb5.so.2 /usr/lib/x86_64-linux-gnu/libgssapi_krb5.so

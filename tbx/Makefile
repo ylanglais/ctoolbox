@@ -108,11 +108,15 @@ log.o: log.c
 re.o: re.c
 	@$(call compile,$<, ${RE_CCFLAGS})
 
+ifeq (${HASPCRE1},1) 
 re_pcre.o: re_pcre.c
 	@$(call compile,$<, ${PCRE_CCFLAGS})
+endif
 
+ifeq (${HASPCRE2},1) 
 re_pcre2.o: re_pcre2.c
 	@$(call compile,$<, ${PCRE2_CCFLAGS})
+endif
 
 libtbx.so: ${TBX_OBJS} ${TBX_SRCS} ${TBX_HDRS}
 	@echo -n ">>> Make tbx library $@...";  \
@@ -158,9 +162,13 @@ ifeq (${HASPCRE1},1)
 REPCRE_O  = re_pcre.o mem.o err.o tstmr.o
 test-re-pcre: re.c ${REPCRE_O}
 	@echo -n ">>> Make $@..." ; \
+	echo "make test-re-pcre because HASPCRE1=${HASPCRE1}"
 	${CC} -c ${CCFLAGS} -o    test-$(basename $<)-pcre.o $< -D_test_$(basename $<)_  ${PCRE_CCFLAGS} && \
 	${CC}    ${CCFLAGS} -o $@ test-$(basename $<)-pcre.o ${REPCRE_O} ${PCRE_LDFLAGS} ;\
 	$(call status)
+else
+test-re-pcre: 
+	@echo "no pcre"
 endif
 
 ifeq (${HASPCRE2},1) 
@@ -170,6 +178,9 @@ test-re-pcre2: re.c ${REPCRE2_O}
 	${CC} -c ${CCFLAGS} -o    test-$(basename $<)-pcre2.o $< -D_test_$(basename $<)_ ${PCRE2_CCFLAGS} && \
 	${CC}    ${CCFLAGS} -o $@ test-$(basename $<)-pcre2.o ${REPCRE2_O} ${PCRE2_LDFLAGS} ;\
 	$(call status)
+else
+test-re-pcre2: 
+	@echo "no pcre2"
 endif
 
 REPOSIX_O = re_posix.o mem.o err.o tstmr.o
@@ -255,11 +266,6 @@ LIFO_O =
 test-lifo: lifo.c ${LIFO_O} 
 	@$(call build_test,${LIFO_O},,)
 
-
-LIST_O = mem.o storage.o err.o tstmr.o
-test-list: list.c ${LIST_O} 
-	@$(call build_test,${LIST_O},,)
-
 MAP_O = err.o tstmr.o 
 test-map: map.c ${MAP_O} 
 	@$(call build_test,${MAP_O},,)
@@ -272,7 +278,14 @@ PIPE_O = err.o futl.o tstmr.o mem.o crc_32.o
 test-pipe: pipe.c ${PIPE_O} 
 	@$(call build_test,${PIPE_O},,)
 
-T_RE_O = mem.o err.o tstmr.o re_pcre.o re_pcre2.o re_posix.o 
+
+T_RE_O = mem.o err.o tstmr.o re_posix.o 
+ifeq (${HASPCRE1},1)
+T_RE_O += re_pcre.o 
+endif
+ifeq (${HASPCRE2},1)
+T_RE_O += re_pcre2.o 
+endif
 test-re: re.c ${T_RE_O}
 	@$(call build_test,${T_RE_O},${RE_CCFLAGS},${RE_LDFLAGS})
 
@@ -328,7 +341,13 @@ SHMEM_O =
 test-shmem: shmem.c ${SHMEM_O}
 	@$(call build_test,${SHMEM_O},,)
 
-LOG_O = patr.o storage.o tstmr.o mem.o re.o err.o re_pcre2.o re_pcre.o re_posix.o
+LOG_O = patr.o storage.o tstmr.o mem.o re.o err.o re_posix.o
+ifeq (${HASPCRE1},1)
+LOG_O += re_pcre.o 
+endif
+ifeq (${HASPCRE2},1)
+LOG_O += re_pcre2.o 
+endif
 test-log: log.c ${LOG_O}
 	@$(call build_test,${LOG_O},${RE_CCFLAGS} ${LOG_CCFLAGS},${RE_LDFLAGS} ${LOG_LDFLAGS})
 	

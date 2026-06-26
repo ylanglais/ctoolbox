@@ -35,7 +35,7 @@ struct _rematch_t;
 #if 0
 static char *re_engines[] = {
 	"posix",
-#ifdef HASPCRE2
+#ifdef HASPCRE1
 	"pcre",
 #endif
 #ifdef HASPCRE2

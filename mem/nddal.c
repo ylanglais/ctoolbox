@@ -14,7 +14,7 @@
 #include <errno.h>
 
 #include "stack.h"
-#include "fmt.h"
+#include <tbx/fmt.h>
 
 #define nddal_HEAD_LEN 32
 #define nddal_TAIL_LEN 32
