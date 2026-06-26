@@ -1,7 +1,7 @@
 include ../base.mk
 
 PGINC   = -I$(shell pg_config --includedir)
-PGLIB   = -L$(shell pg_config --libdir) -lpq $(shell pg_config --libs) 
+PGLIB   = -L$(shell pg_config --libdir) -L$(shell pg_config --pkglibdir)  $(shell pg_config --libs) 
 
 MYINC   = $(shell mysql_config --cflags)
 MYLIB   = $(shell mysql_config --libs) 
@@ -31,7 +31,7 @@ gdb_pgsql.c: gdb_pgsql.h pgtypes.h
 %.c: %.h
 
 %.o: %.c
-	$(call compile,$<)
+	$(call compile,$<, ${PGINC} ${MYINC})
 
 pgtypes.h:
 	@echo -n "    Generate ${bold}pg_types.h${norm}..." ; \
