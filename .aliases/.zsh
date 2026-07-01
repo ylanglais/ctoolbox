@@ -147,7 +147,7 @@ _sete() {
 dbname() {
 	[ -z $DBNAME ] || { 
 		echo "$white$bold$DBNAME$norm " 
-	}
+	} && true
 }
 prj() {
 	[ x"$PRJ" != x""  ] && { 
@@ -161,7 +161,7 @@ prj() {
 				[ "$PRJENV" == "rec" ] && c_="$bold$yellow" || c_="$bold$red"
 			} 
 			p_=":$c_$PRJENV$norm"
-		}	
+		} && true	
 		echo "$white$bold$PRJ$norm$p_ " 
 	} || {
 		dbname
@@ -262,7 +262,7 @@ dbdmp() {
 	}
 	echo "Dump database $bold$green$dn$norm to $bold$yellow$name$norm"
 
-	[ $dt = "mysql" ] && {
+	[ $dt = "mysql" -o $dt = "maria" ] && {
 		mysqldump -h $dh -u $dl -p$dw -P $dp --lock-tables=false $dn $* > $name
 		true
 	} || {
@@ -288,7 +288,7 @@ dbdmpcmd() {
 	}
 	echo "Dump database $bold$green$dn$norm to $bold$yellow$name$norm"
 
-	[ $dt = "mysql" ] && {
+	[ $dt = "mysql" -o $dt = "maria" ] && {
 		echo mysqldump -h $dh -u $dl -p$dw -P $dp --lock-tables=false $dn $* > $name
 	} || {
 		echo PGPASSWORD=$(__get_dw) pgdump -h$dh $dn -U $dl $* > $name
@@ -313,7 +313,7 @@ dbschema() {
 	}
 	echo "Dump database $bold$green$dn$norm to $bold$yellow$name$norm"
 
-	[ $dt = "mysql" ] && {
+	[ $dt = "mysql" -o $dt = "maria" ] && {
 		mysqldump -h $dh -u $dl -p$dw -P $dp -d --lock-tables=false $dn $* > $name
 		true
 	} || {
@@ -381,7 +381,7 @@ sql() {
 	ctrlc() { xnames $xns }
 	trap ctrlc INT
 	xnames "$(hostname) ${Shell}-${SessionID} sql $dn"
-	[ $dt = "mysql" ] && {
+	[ $dt = "mysql" -o $dt = "maria" ] && {
 		[ -z "$DBNOPAD" ] && { pad="" } || { pad="-B"      }
 		[ -z "$DBNOTI"  ] && { ti=""  } || { ti="--skip-column-names" }
 		[ $# -ge 1 ] && {
@@ -414,7 +414,7 @@ sqlcmd() {
 	dl=$(__get_dl)
 	dw=$(__get_dw)
 
-	[ $dt = "mysql" ] && {
+	[ $dt = "mysql" -o $dt = "maria" ] && {
 		[ -z "$DBNOPAD" ] && { pad="" } || { pad="-B"      }
 		[ -z "$DBNOTI"  ] && { ti=""  } || { ti="--skip-column-names" }
 		[ $# -ge 1 ] && {
@@ -450,7 +450,7 @@ qw() {
 	dl=$(__get_dl)
 	dw=$(__get_dw)
 
-	[ $dt = "mysql" ] && {
+	[ $dt = "mysql" -o $dt = "maria" ] && {
 		mysql  -h $dh -u $dl -p$dw -P $dp $dn -rs --disable-pager -e "$*"
 		true
 	} || {
